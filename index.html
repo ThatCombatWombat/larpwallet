@@ -1,486 +1,658 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"/>
-  <meta name="apple-mobile-web-app-capable" content="yes"/>
-  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
-  <meta name="apple-mobile-web-app-title" content="LarpWallet"/>
-  <meta name="theme-color" content="#0a0a1a"/>
-  <title>LarpWallet</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono&display=swap" rel="stylesheet"/>
-  <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    html, body {
-      height: 100%; width: 100%;
-      background: #0a0a1a;
-      font-family: 'DM Sans', sans-serif;
-      overflow: hidden;
-      color: #fff;
-      -webkit-font-smoothing: antialiased;
-    }
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent"/>
+<meta name="apple-mobile-web-app-title" content="Phantom"/>
+<meta name="theme-color" content="#1a1a2e"/>
+<title>Phantom</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;width:100%;overflow:hidden;background:#000;font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+:root{
+  --bg:#1c1c28;--bg2:#252536;--bg3:#2e2e42;--bg4:#363650;
+  --card:#252536;--border:#35354a;
+  --purple:#ab9ff2;--purple2:#8b7ff0;
+  --green:#3de387;--red:#f04f4f;
+  --text:#fff;--text2:#a0a0b8;--text3:#6b6b85;
+  --r:12px;
+}
+.app{height:100vh;height:100dvh;max-width:430px;margin:0 auto;background:var(--bg);display:flex;flex-direction:column;position:relative;overflow:hidden}
+.page{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--bg);transform:translateX(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);z-index:10}
+.page.home-page{transform:translateX(0);z-index:5}
+.page.active{transform:translateX(0);z-index:20}
 
-    /* Safe area insets for notch phones */
-    .app {
-      height: 100%; height: 100dvh;
-      display: flex; flex-direction: column;
-      max-width: 430px; margin: 0 auto;
-      position: relative; overflow: hidden;
-      background: #0a0a1a;
-    }
+/* STATUS */
+.status-bar{padding:max(env(safe-area-inset-top),14px) 20px 0;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;min-height:calc(max(env(safe-area-inset-top),14px)+20px)}
+.status-time{font-size:15px;font-weight:700;color:#fff;letter-spacing:-.3px}
+.status-icons{display:flex;align-items:center;gap:5px}
 
-    /* Status bar */
-    .status-bar {
-      padding: env(safe-area-inset-top, 12px) 24px 0;
-      padding-top: max(env(safe-area-inset-top), 12px);
-      display: flex; justify-content: space-between; align-items: center;
-      background: #0a0a1a; z-index: 10;
-      min-height: 44px;
-    }
-    .status-time { display: none}
-    .status-icons { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+/* TOP BAR */
+.top-bar{display:flex;align-items:center;justify-content:space-between;padding:10px 16px 8px;flex-shrink:0}
+.account-pill{display:flex;align-items:center;gap:8px;background:var(--bg2);border-radius:20px;padding:6px 12px 6px 8px;cursor:pointer;border:1px solid var(--border)}
+.acct-avatar-circle{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#ab9ff2,#8b7ff0);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0}
+.account-name{font-size:14px;font-weight:600;color:#fff}
+.top-icons{display:flex;gap:8px}
+.icon-btn{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text2);transition:background .15s}
+.icon-btn:active{background:var(--bg3)}
 
-    /* Scrollable content */
-    .scroll-area {
-      flex: 1; overflow-y: auto; overflow-x: hidden;
-      -webkit-overflow-scrolling: touch;
-      padding-bottom: calc(env(safe-area-inset-bottom, 0px) + 80px);
-      scrollbar-width: none;
-    }
-    .scroll-area::-webkit-scrollbar { display: none; }
+/* SCROLL */
+.scroll-area{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;scrollbar-width:none;padding-bottom:calc(env(safe-area-inset-bottom,0px)+72px)}
+.scroll-area::-webkit-scrollbar{display:none}
 
-    /* Header */
-    .header {
-      padding: 12px 24px 0;
-      background: #0a0a1a;
-    }
-    .wallet-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2px; }
-    .wallet-name-wrap { display: flex; align-items: center; gap: 8px; }
-    .wallet-dot { width: 8px; height: 8px; border-radius: 50%; background: #7c3aed; flex-shrink: 0; }
-    .wallet-name-text { font-size: 14px; color: #9999bb; font-weight: 500; }
-    .wallet-badge { background: #7c3aed22; border: 1px solid #7c3aed55; border-radius: 20px; padding: 2px 9px; font-size: 10px; color: #c4b5fd; font-weight: 500; letter-spacing: 0.5px; }
-    .wallet-addr { font-size: 11px; color: #44445a; font-family: 'DM Mono', monospace; margin-bottom: 0; }
+/* BALANCE */
+.balance-section{text-align:center;padding:20px 20px 12px}
+.balance-amount{font-size:52px;font-weight:700;color:#fff;letter-spacing:-2px;line-height:1}
+.balance-changes{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:10px}
+.change-val{font-size:15px;font-weight:500}
+.change-pct{font-size:13px;font-weight:600;background:var(--green);color:#000;padding:3px 8px;border-radius:6px}
+.change-pct.neg{background:var(--red);color:#fff}
 
-    /* Balance */
-    .balance-section { text-align: center; padding: 24px 24px 16px; }
-    .balance-label { font-size: 11px; color: #666688; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 8px; }
-    .balance-amount { font-size: 48px; font-weight: 600; letter-spacing: -2px; line-height: 1; color: #fff; }
-    .balance-change { font-size: 13px; color: #22c55e; margin-top: 8px; }
+/* ACTIONS */
+.action-row{display:flex;gap:10px;padding:4px 16px 20px}
+.action-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer;border:none;background:none}
+.action-icon-wrap{width:56px;height:56px;border-radius:16px;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;transition:background .15s,transform .1s}
+.action-btn:active .action-icon-wrap{background:var(--bg3);transform:scale(.94)}
+.action-icon-wrap svg{width:24px;height:24px;stroke:#ab9ff2;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.action-label{font-size:13px;font-weight:500;color:var(--text2)}
 
-    /* Mini chart */
-    .chart-wrap { padding: 0 20px 4px; }
-    .mini-chart { width: 100%; height: 56px; display: block; }
+/* TOKEN LIST */
+.token-item{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;transition:background .12s;border-radius:var(--r);margin:0 8px 2px}
+.token-item:active{background:var(--bg2)}
+.tok-logo{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;font-weight:700;flex-shrink:0;position:relative}
+.chain-badge{position:absolute;bottom:-2px;right:-2px;width:18px;height:18px;border-radius:50%;border:2px solid var(--bg);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700}
+.tok-info{flex:1;min-width:0}
+.tok-name{font-size:15px;font-weight:600;color:#fff}
+.tok-sub{font-size:13px;color:var(--text2);margin-top:2px}
+.tok-right{text-align:right}
+.tok-val{font-size:15px;font-weight:600;color:#fff}
+.tok-chg{font-size:13px;margin-top:2px}
+.pos{color:var(--green)}.neg{color:var(--red)}
 
-    /* Actions */
-    .action-row { display: flex; gap: 8px; justify-content: center; padding: 12px 24px 16px; }
-    .action-btn { display: flex; flex-direction: column; align-items: center; gap: 7px; cursor: pointer; border: none; background: none; color: #fff; flex: 1; max-width: 80px; padding: 0; }
-    .action-icon { width: 52px; height: 52px; border-radius: 50%; background: #ffffff12; display: flex; align-items: center; justify-content: center; font-size: 22px; transition: background 0.15s, transform 0.1s; border: 1px solid #ffffff0a; }
-    .action-btn:active .action-icon { background: #ffffff20; transform: scale(0.93); }
-    .action-label { font-size: 12px; color: #8888aa; font-weight: 500; }
+/* BOTTOM NAV */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:430px;background:var(--bg2);border-top:1px solid var(--border);display:flex;padding-bottom:max(env(safe-area-inset-bottom),8px);z-index:100}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;padding:10px 0 4px;cursor:pointer;border:none;background:none;gap:4px}
+.nav-item svg{width:22px;height:22px;fill:var(--text3);transition:fill .15s}
+.nav-label{font-size:10px;font-weight:500;color:var(--text3);transition:color .15s}
+.nav-item.active svg{fill:var(--purple)}
+.nav-item.active .nav-label{color:var(--purple)}
 
-    /* Divider */
-    .section-divider { height: 8px; background: #06060f; }
+/* EDIT SHEET */
+.sheet-overlay{position:fixed;inset:0;background:#00000088;z-index:200;opacity:0;pointer-events:none;transition:opacity .3s}
+.sheet-overlay.open{opacity:1;pointer-events:all}
+.edit-sheet{position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);width:100%;max-width:430px;background:#1e1e2e;border-radius:24px 24px 0 0;border-top:1px solid var(--border);padding:16px 20px;padding-bottom:max(env(safe-area-inset-bottom,24px),24px);z-index:201;transition:transform .35s cubic-bezier(.32,.72,0,1)}
+.edit-sheet.open{transform:translateX(-50%) translateY(0)}
+.sheet-handle{width:40px;height:4px;background:var(--bg4);border-radius:2px;margin:0 auto 20px}
+.quick-row{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
+.q-btn{padding:7px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;color:var(--text2);font-size:13px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s}
+.q-btn:active{background:rgba(171,159,242,.15);border-color:var(--purple);color:var(--purple)}
+.input-row{position:relative;margin-bottom:10px}
+.inp-prefix{position:absolute;left:16px;top:50%;transform:translateY(-50%);color:var(--text2);font-size:24px;font-weight:600;pointer-events:none}
+.bal-input{width:100%;padding:16px 16px 16px 36px;background:var(--bg2);border:1.5px solid var(--border);border-radius:14px;color:#fff;font-size:28px;font-weight:700;outline:none;font-family:'Inter',sans-serif;-webkit-appearance:none;transition:border-color .15s}
+.bal-input:focus{border-color:var(--purple)}
+.tok-equiv{font-size:14px;color:var(--text2);text-align:center;margin-bottom:16px;min-height:22px}
+.update-btn{width:100%;padding:17px;background:var(--purple);border:none;border-radius:14px;color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;transition:background .15s,transform .1s}
+.update-btn:active{background:var(--purple2);transform:scale(.98)}
 
-    /* Tabs */
-    .tabs { display: flex; padding: 0 20px; border-bottom: 1px solid #1e1e30; background: #0a0a1a; }
-    .tab { padding: 14px 16px; font-size: 13px; font-weight: 500; color: #555577; cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; }
-    .tab.active { color: #fff; border-bottom-color: #7c3aed; }
+/* TOAST */
+.toast{position:fixed;top:80px;left:50%;transform:translateX(-50%) translateY(-20px);background:#2a2a3e;color:#fff;padding:11px 22px;border-radius:40px;font-size:14px;font-weight:500;opacity:0;transition:all .3s;pointer-events:none;z-index:400;white-space:nowrap;border:1px solid var(--border)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
-    /* Token list */
-    .section-header { font-size: 11px; color: #555577; letter-spacing: 1px; text-transform: uppercase; padding: 16px 24px 8px; background: #0a0a1a; }
-    .token-list { background: #0a0a1a; padding: 0 12px 4px; }
-    .token-row { display: flex; align-items: center; gap: 14px; padding: 13px 12px; border-radius: 18px; cursor: pointer; transition: background 0.12s; border: 1px solid transparent; }
-    .token-row:active { background: #ffffff08; }
-    .token-row.selected { background: #7c3aed14; border-color: #7c3aed44; }
-    .token-icon { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0; font-weight: 600; }
-    .token-info { flex: 1; min-width: 0; }
-    .token-name { font-size: 15px; font-weight: 500; color: #fff; }
-    .token-sub { font-size: 12px; color: #8888aa; margin-top: 2px; }
-    .token-right { text-align: right; }
-    .token-value { font-size: 15px; font-weight: 500; color: #fff; }
-    .token-chg { font-size: 12px; margin-top: 2px; }
-    .pos { color: #22c55e; } .neg { color: #ef4444; }
-    .token-edit-hint { font-size: 10px; color: #555577; margin-top: 1px; }
+/* INNER HEADER */
+.inner-header{display:flex;align-items:center;gap:12px;padding:max(env(safe-area-inset-top,14px),14px) 16px 8px;flex-shrink:0}
+.back-btn{width:36px;height:36px;border-radius:50%;background:var(--bg2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#fff;font-size:20px;flex-shrink:0;line-height:1}
+.page-title{font-size:18px;font-weight:700;color:#fff}
 
-    /* Bottom nav */
-    .bottom-nav {
-      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
-      width: 100%; max-width: 430px;
-      background: #0d0d1eee; backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
-      border-top: 1px solid #1e1e30;
-      display: flex; justify-content: space-around; align-items: center;
-      padding: 10px 0; padding-bottom: max(env(safe-area-inset-bottom), 10px);
-      z-index: 50;
-    }
-    .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; border: none; background: none; color: #555577; padding: 4px 16px; }
-    .nav-btn.active { color: #7c3aed; }
-    .nav-icon { font-size: 22px; }
-    .nav-label { font-size: 10px; font-weight: 500; letter-spacing: 0.3px; }
+/* SETTINGS */
+.settings-section{padding:0 16px;margin-bottom:4px}
+.settings-label{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:16px 4px 8px}
+.settings-group{background:var(--card);border-radius:var(--r);border:1px solid var(--border);overflow:hidden}
+.settings-row{display:flex;align-items:center;gap:14px;padding:15px 16px;cursor:pointer;border-bottom:1px solid var(--border);transition:background .12s}
+.settings-row:last-child{border-bottom:none}
+.settings-row:active{background:var(--bg3)}
+.s-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.s-text{flex:1}
+.s-title{font-size:15px;font-weight:500;color:#fff}
+.s-sub{font-size:12px;color:var(--text2);margin-top:2px}
+.s-right{color:var(--text3);font-size:18px}
+.toggle{width:48px;height:28px;border-radius:14px;background:var(--bg3);border:none;cursor:pointer;position:relative;transition:background .2s;flex-shrink:0}
+.toggle::after{content:'';position:absolute;top:3px;left:3px;width:22px;height:22px;border-radius:50%;background:#fff;transition:transform .2s}
+.toggle.on{background:var(--purple)}
+.toggle.on::after{transform:translateX(20px)}
 
-    /* Edit panel */
-    .overlay { position: fixed; inset: 0; background: #000000aa; z-index: 100; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
-    .overlay.visible { opacity: 1; pointer-events: all; }
-    .edit-panel {
-      position: fixed; bottom: 0; left: 50%; transform: translateX(-50%) translateY(100%);
-      width: 100%; max-width: 430px;
-      background: #111128; border-top: 1px solid #2a2a44;
-      border-radius: 28px 28px 0 0;
-      padding: 16px 20px;
-      padding-bottom: max(env(safe-area-inset-bottom, 24px), 24px);
-      z-index: 101;
-      transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
-    }
-    .edit-panel.open { transform: translateX(-50%) translateY(0); }
-    .edit-handle { width: 40px; height: 4px; background: #333355; border-radius: 2px; margin: 0 auto 18px; }
-    .edit-panel-title { font-size: 12px; color: #7777aa; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 14px; }
-    .edit-token-hdr { display: flex; align-items: center; gap: 12px; margin-bottom: 18px; }
-    .edit-tok-icon { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 20px; }
-    .edit-tok-name { font-size: 18px; font-weight: 600; }
-    .edit-tok-price { font-size: 12px; color: #8888aa; margin-top: 2px; }
-    .quick-amounts { display: flex; gap: 7px; margin-bottom: 16px; flex-wrap: wrap; }
-    .quick-btn { padding: 7px 13px; background: #1a1a30; border: 1px solid #2a2a44; border-radius: 22px; color: #aaaacc; font-size: 12px; cursor: pointer; transition: all 0.15s; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
-    .quick-btn:active { background: #7c3aed28; border-color: #7c3aed77; color: #c4b5fd; transform: scale(0.96); }
-    .input-wrap { position: relative; margin-bottom: 14px; }
-    .input-prefix { position: absolute; left: 16px; top: 50%; transform: translateY(-50%); color: #8888aa; font-size: 22px; font-weight: 500; pointer-events: none; }
-    .amount-input {
-      width: 100%; padding: 16px 16px 16px 36px;
-      background: #0a0a1a; border: 1.5px solid #2a2a44;
-      border-radius: 16px; color: #fff; font-size: 26px;
-      font-weight: 600; outline: none; font-family: 'DM Sans', sans-serif;
-      transition: border-color 0.15s; -webkit-appearance: none;
-    }
-    .amount-input:focus { border-color: #7c3aed; }
-    .token-equiv { font-size: 13px; color: #8888aa; text-align: center; margin-bottom: 14px; min-height: 20px; }
-    .save-btn {
-      width: 100%; padding: 16px;
-      background: #7c3aed; border: none; border-radius: 16px;
-      color: #fff; font-size: 16px; font-weight: 600;
-      cursor: pointer; transition: background 0.15s, transform 0.1s;
-      font-family: 'DM Sans', sans-serif; letter-spacing: 0.3px;
-    }
-    .save-btn:active { background: #6d28d9; transform: scale(0.98); }
+/* NFT GRID */
+.nft-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
+.nft-card{background:var(--card);border-radius:16px;border:1px solid var(--border);overflow:hidden;cursor:pointer;transition:transform .15s}
+.nft-card:active{transform:scale(.97)}
+.nft-img{width:100%;aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:56px;background:var(--bg3)}
+.nft-info{padding:10px 12px}
+.nft-name{font-size:13px;font-weight:600;color:#fff}
+.nft-coll{font-size:11px;color:var(--text2);margin-top:2px}
 
-    /* Toast */
-    .toast {
-      position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
-      background: #7c3aed; color: #fff;
-      padding: 11px 24px; border-radius: 40px; font-size: 14px; font-weight: 500;
-      opacity: 0; transition: all 0.3s; pointer-events: none; z-index: 200;
-      white-space: nowrap; box-shadow: 0 8px 32px #7c3aed44;
-    }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+/* ACTIVITY */
+.activity-item{display:flex;align-items:center;gap:14px;padding:14px 16px;cursor:pointer;border-radius:var(--r);margin:0 8px 2px;transition:background .12s}
+.activity-item:active{background:var(--bg2)}
+.act-icon{width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.act-info{flex:1}
+.act-title{font-size:15px;font-weight:600;color:#fff}
+.act-sub{font-size:13px;color:var(--text2);margin-top:2px}
+.act-right{text-align:right}
+.act-amount{font-size:15px;font-weight:600}
+.act-date{font-size:12px;color:var(--text2);margin-top:2px}
 
-    /* Empty state hint */
-    .empty-hint { text-align: center; padding: 32px 24px; color: #444466; font-size: 13px; line-height: 1.6; }
-    .empty-hint strong { color: #666688; display: block; margin-bottom: 6px; font-size: 15px; }
-  </style>
+/* ACCOUNT MODAL */
+.modal-overlay{position:fixed;inset:0;background:#00000099;z-index:300;opacity:0;pointer-events:none;transition:opacity .25s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.account-modal{position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-100%);width:100%;max-width:430px;background:#1e1e2e;border-radius:0 0 24px 24px;border-bottom:1px solid var(--border);padding-top:max(env(safe-area-inset-top,20px),20px);padding-bottom:20px;z-index:301;transition:transform .35s cubic-bezier(.32,.72,0,1);max-height:80vh;overflow-y:auto}
+.account-modal.open{transform:translateX(-50%) translateY(0)}
+.modal-title{font-size:11px;font-weight:600;color:var(--text3);padding:12px 20px;letter-spacing:1px;text-transform:uppercase}
+.acct-row{display:flex;align-items:center;gap:14px;padding:14px 20px;cursor:pointer;transition:background .12s}
+.acct-row:active{background:var(--bg2)}
+.acct-av{width:42px;height:42px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:700;color:#fff;flex-shrink:0}
+.acct-info{flex:1}
+.acct-name{font-size:15px;font-weight:600;color:#fff}
+.acct-addr{font-size:12px;color:var(--text2);margin-top:2px}
+.add-acct-btn{margin:8px 20px 0;width:calc(100% - 40px);padding:14px;background:var(--bg2);border:1px solid var(--border);border-radius:12px;color:var(--text2);font-size:15px;font-weight:500;cursor:pointer;font-family:'Inter',sans-serif;display:flex;align-items:center;justify-content:center;gap:8px;transition:background .15s}
+.add-acct-btn:active{background:var(--bg3)}
+
+/* EXPLORE */
+.explore-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;padding:16px}
+.explore-card{background:var(--card);border:1px solid var(--border);border-radius:16px;padding:16px;cursor:pointer;transition:transform .15s}
+.explore-card:active{transform:scale(.97)}
+.explore-icon{font-size:32px;margin-bottom:10px}
+.explore-name{font-size:14px;font-weight:600;color:#fff}
+.explore-sub{font-size:12px;color:var(--text2);margin-top:4px}
+
+.list-hdr{font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;padding:12px 20px 4px}
+
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.token-item{animation:fadeUp .3s ease both}
+.token-item:nth-child(1){animation-delay:.03s}.token-item:nth-child(2){animation-delay:.06s}
+.token-item:nth-child(3){animation-delay:.09s}.token-item:nth-child(4){animation-delay:.12s}
+.token-item:nth-child(5){animation-delay:.15s}.token-item:nth-child(6){animation-delay:.18s}
+.token-item:nth-child(7){animation-delay:.21s}.token-item:nth-child(8){animation-delay:.24s}
+</style>
 </head>
 <body>
 <div class="app">
 
-  <!-- Status bar -->
+<!-- HOME PAGE -->
+<div class="page home-page active" id="page-home">
   <div class="status-bar">
-    <div class="status-time" id="status-time">9:41</div>
+    <div class="status-time" id="clock">9:41</div>
     <div class="status-icons">
-      
-      
-      
-      
+      <svg width="17" height="12" viewBox="0 0 17 12" fill="#fff"><rect x="0" y="4" width="3" height="8" rx="1" opacity=".4"/><rect x="4.5" y="2.5" width="3" height="9.5" rx="1" opacity=".6"/><rect x="9" y=".5" width="3" height="11.5" rx="1"/><rect x="13.5" y="0" width="3.5" height="12" rx="1"/></svg>
+      <svg width="16" height="13" viewBox="0 0 20 15" fill="#fff"><path d="M10 3C7.2 3 4.7 4.1 2.9 5.9L1.4 4.4C3.6 2.2 6.6.8 10 .8s6.4 1.4 8.6 3.6L17.1 5.9C15.3 4.1 12.8 3 10 3Z" opacity=".4"/><path d="M10 7.5c-1.7 0-3.2.7-4.3 1.8L4.2 7.8C5.7 6.3 7.7 5.3 10 5.3s4.3 1 5.8 2.5l-1.5 1.5C13.2 8.2 11.7 7.5 10 7.5Z" opacity=".7"/><circle cx="10" cy="12.5" r="2"/></svg>
+      <span style="font-size:12px;font-weight:700;color:#fff">100%</span>
+      <svg width="26" height="13" viewBox="0 0 26 13"><rect x=".5" y=".5" width="22" height="12" rx="3.5" stroke="#ffffff55" fill="none"/><rect x="2" y="2" width="19" height="9" rx="2" fill="#fff"/><path d="M24 4.5v4a2 2 0 000-4z" fill="#ffffff55"/></svg>
     </div>
   </div>
-
-  <!-- Scroll area -->
-  <div class="scroll-area">
-
-    <div class="header">
-      <div class="wallet-row">
-        <div class="wallet-name-wrap">
-          <div class="wallet-dot"></div>
-          <div class="wallet-name-text">My Wallet</div>
-        </div>
-        <div class="wallet-badge">Phantom</div>
+  <div class="top-bar">
+    <div class="account-pill" onclick="openAcctModal()">
+      <div class="acct-avatar-circle" id="main-avatar">A</div>
+      <div class="account-name" id="main-acct-name">Account 1</div>
+      <span style="color:var(--text2);font-size:11px;margin-left:2px">▾</span>
+    </div>
+    <div class="top-icons">
+      <div class="icon-btn" onclick="showToast('QR Scanner')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="3" height="3"/><rect x="18" y="14" width="3" height="3"/><rect x="14" y="18" width="3" height="3"/><rect x="18" y="18" width="3" height="3"/></svg>
       </div>
-      <div class="wallet-addr">0x7f4a2c9e...d3a9</div>
+      <div class="icon-btn" onclick="showToast('Search')">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </div>
     </div>
-
+  </div>
+  <div class="scroll-area">
     <div class="balance-section">
-      <div class="balance-label">Total Balance</div>
-      <div class="balance-amount" id="total-balance">$0.00</div>
-      <div class="balance-change" id="total-change">Tap a token below to set your balance</div>
+      <div class="balance-amount" id="total-bal">$0.00</div>
+      <div class="balance-changes">
+        <span class="change-val pos" id="chg-abs">+$0.00</span>
+        <span class="change-pct" id="chg-pct">+0.00%</span>
+      </div>
     </div>
-
-    <div class="chart-wrap">
-      <svg class="mini-chart" viewBox="0 0 390 56" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="cg" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0%" stop-color="#7c3aed" stop-opacity="0.35"/>
-            <stop offset="100%" stop-color="#7c3aed" stop-opacity="0"/>
-          </linearGradient>
-        </defs>
-        <path id="chart-fill" d="" fill="url(#cg)"/>
-        <path id="chart-line" d="" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>
-      </svg>
-    </div>
-
     <div class="action-row">
-      <button class="action-btn" onclick="toast('Receive')">
-        <div class="action-icon">↓</div>
+      <button class="action-btn" onclick="showToast('Receive')">
+        <div class="action-icon-wrap"><svg viewBox="0 0 24 24"><path d="M12 2v14M5 9l7 7 7-7"/><path d="M3 20h18"/></svg></div>
         <span class="action-label">Receive</span>
       </button>
-      <button class="action-btn" onclick="toast('Send')">
-        <div class="action-icon">↑</div>
+      <button class="action-btn" onclick="showToast('Send')">
+        <div class="action-icon-wrap"><svg viewBox="0 0 24 24"><path d="M12 22V8M5 15l7-7 7 7"/><path d="M3 4h18"/></svg></div>
         <span class="action-label">Send</span>
       </button>
-      <button class="action-btn" onclick="toast('Swap')">
-        <div class="action-icon">⇄</div>
+      <button class="action-btn" onclick="showToast('Swap')">
+        <div class="action-icon-wrap"><svg viewBox="0 0 24 24"><path d="M7 16V4m0 0L3 8m4-4 4 4M17 8v12m0 0 4-4m-4 4-4-4"/></svg></div>
         <span class="action-label">Swap</span>
       </button>
-      <button class="action-btn" onclick="toast('Buy')">
-        <div class="action-icon">+</div>
+      <button class="action-btn" onclick="showToast('Buy')">
+        <div class="action-icon-wrap"><svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
         <span class="action-label">Buy</span>
       </button>
     </div>
-
-    <div class="section-divider"></div>
-
-    <div class="tabs">
-      <div class="tab active">Tokens</div>
-      <div class="tab">NFTs</div>
-      <div class="tab">Activity</div>
-    </div>
-
-    <div class="section-header">Your assets · tap to edit</div>
-    <div class="token-list" id="token-list"></div>
-
-    <div class="empty-hint" id="empty-hint">
-      <strong>Your wallet is empty</strong>
-      Tap any token to purchase.<br/>
-    </div>
-
+    <div id="token-list"></div>
   </div>
-
-  <!-- Bottom nav -->
-  <div class="bottom-nav">
-    <button class="nav-btn active"><div class="nav-icon">⬡</div><div class="nav-label">Wallet</div></button>
-    <button class="nav-btn" onclick="toast('Swap')"><div class="nav-icon">⇄</div><div class="nav-label">Swap</div></button>
-    <button class="nav-btn" onclick="toast('Explore')"><div class="nav-icon">◎</div><div class="nav-label">Explore</div></button>
-    <button class="nav-btn" onclick="toast('Settings')"><div class="nav-icon">⚙</div><div class="nav-label">Settings</div></button>
-  </div>
-
 </div>
 
-<!-- Overlay -->
-<div class="overlay" id="overlay" onclick="closePanel()"></div>
-
-<!-- Edit panel -->
-<div class="edit-panel" id="edit-panel">
-  <div class="edit-handle"></div>
-  <div class="edit-panel-title">Edit Balance</div>
-  <div class="edit-token-hdr">
-    <div class="edit-tok-icon" id="edit-icon"></div>
-    <div>
-      <div class="edit-tok-name" id="edit-tok-name"></div>
-      <div class="edit-tok-price" id="edit-tok-price"></div>
-    </div>
+<!-- COLLECTIBLES PAGE -->
+<div class="page" id="page-collectibles">
+  <div style="display:flex;align-items:center;justify-content:center;padding:max(env(safe-area-inset-top,14px),14px) 16px 10px;flex-shrink:0">
+    <div style="font-size:18px;font-weight:700;color:#fff">Collectibles</div>
   </div>
-  <div class="quick-amounts" id="quick-amounts"></div>
-  <div class="input-wrap">
-    <span class="input-prefix">$</span>
-    <input class="amount-input" type="number" id="amount-input" inputmode="decimal" placeholder="0.00" min="0" step="0.01"/>
+  <div class="scroll-area">
+    <div class="nft-grid" id="nft-grid"></div>
   </div>
-  <div class="token-equiv" id="token-equiv"></div>
-  <button class="save-btn" onclick="saveBalance()">Update Balance</button>
 </div>
 
-<!-- Toast -->
-<div class="toast" id="toast-el"></div>
+<!-- ACTIVITY PAGE -->
+<div class="page" id="page-activity">
+  <div style="display:flex;align-items:center;justify-content:center;padding:max(env(safe-area-inset-top,14px),14px) 16px 10px;flex-shrink:0">
+    <div style="font-size:18px;font-weight:700;color:#fff">Activity</div>
+  </div>
+  <div class="scroll-area">
+    <div class="list-hdr">Recent</div>
+    <div id="activity-list"></div>
+  </div>
+</div>
+
+<!-- EXPLORE PAGE -->
+<div class="page" id="page-explore">
+  <div style="display:flex;align-items:center;justify-content:center;padding:max(env(safe-area-inset-top,14px),14px) 16px 10px;flex-shrink:0">
+    <div style="font-size:18px;font-weight:700;color:#fff">Explore</div>
+  </div>
+  <div class="scroll-area">
+    <div class="list-hdr">Featured Apps</div>
+    <div class="explore-grid">
+      <div class="explore-card" onclick="showToast('Jupiter')"><div class="explore-icon">🌍</div><div class="explore-name">Jupiter</div><div class="explore-sub">Best swap rates</div></div>
+      <div class="explore-card" onclick="showToast('Magic Eden')"><div class="explore-icon">🧙</div><div class="explore-name">Magic Eden</div><div class="explore-sub">NFT marketplace</div></div>
+      <div class="explore-card" onclick="showToast('Raydium')"><div class="explore-icon">⚡</div><div class="explore-name">Raydium</div><div class="explore-sub">DeFi & liquidity</div></div>
+      <div class="explore-card" onclick="showToast('Marinade')"><div class="explore-icon">🥩</div><div class="explore-name">Marinade</div><div class="explore-sub">Liquid staking</div></div>
+      <div class="explore-card" onclick="showToast('Tensor')"><div class="explore-icon">🔷</div><div class="explore-name">Tensor</div><div class="explore-sub">NFT trading</div></div>
+      <div class="explore-card" onclick="showToast('Drift')"><div class="explore-icon">📈</div><div class="explore-name">Drift</div><div class="explore-sub">Perps trading</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SETTINGS PAGE -->
+<div class="page" id="page-settings">
+  <div style="display:flex;align-items:center;justify-content:center;padding:max(env(safe-area-inset-top,14px),14px) 16px 10px;flex-shrink:0">
+    <div style="font-size:18px;font-weight:700;color:#fff">Settings</div>
+  </div>
+  <div class="scroll-area" style="padding-bottom:calc(env(safe-area-inset-bottom,0px)+80px)">
+    <div class="settings-section">
+      <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:20px;display:flex;align-items:center;gap:16px;margin-top:8px">
+        <div id="s-avatar" style="width:56px;height:56px;border-radius:50%;background:linear-gradient(135deg,#ab9ff2,#8b7ff0);display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700;color:#fff">A</div>
+        <div><div id="s-name" style="font-size:18px;font-weight:700;color:#fff">Account 1</div><div style="font-size:13px;color:var(--text2);margin-top:3px;font-family:monospace">0x7f4a2c9e...d3a9</div></div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Wallet</div>
+      <div class="settings-group">
+        <div class="settings-row" onclick="goRename()">
+          <div class="s-icon" style="background:#ab9ff222">✏️</div>
+          <div class="s-text"><div class="s-title">Rename Account</div><div class="s-sub" id="s-acct-sub">Account 1</div></div>
+          <div class="s-right">›</div>
+        </div>
+        <div class="settings-row" onclick="showToast('Address copied!')">
+          <div class="s-icon" style="background:#14f19522">📋</div>
+          <div class="s-text"><div class="s-title">Copy Address</div><div class="s-sub">0x7f4a2c9e...d3a9</div></div>
+          <div class="s-right">›</div>
+        </div>
+        <div class="settings-row" onclick="showToast('QR code coming soon')">
+          <div class="s-icon" style="background:#627eea22">⬡</div>
+          <div class="s-text"><div class="s-title">Show QR Code</div><div class="s-sub">Share your address</div></div>
+          <div class="s-right">›</div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Preferences</div>
+      <div class="settings-group">
+        <div class="settings-row" onclick="toggleSetting('notifications')">
+          <div class="s-icon" style="background:#f7931a22">🔔</div>
+          <div class="s-text"><div class="s-title">Notifications</div><div class="s-sub">Transaction alerts</div></div>
+          <button class="toggle" id="tog-notifications" onclick="event.stopPropagation();toggleSetting('notifications')"></button>
+        </div>
+        <div class="settings-row" onclick="toggleSetting('biometrics')">
+          <div class="s-icon" style="background:#3de38722">🔒</div>
+          <div class="s-text"><div class="s-title">Face ID / Biometrics</div><div class="s-sub">Secure access</div></div>
+          <button class="toggle on" id="tog-biometrics" onclick="event.stopPropagation();toggleSetting('biometrics')"></button>
+        </div>
+        <div class="settings-row" onclick="toggleSetting('testnet')">
+          <div class="s-icon" style="background:#ab9ff222">🧪</div>
+          <div class="s-text"><div class="s-title">Testnet Mode</div><div class="s-sub">Use devnet networks</div></div>
+          <button class="toggle" id="tog-testnet" onclick="event.stopPropagation();toggleSetting('testnet')"></button>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">Security</div>
+      <div class="settings-group">
+        <div class="settings-row" onclick="showToast('Recovery phrase hidden')">
+          <div class="s-icon" style="background:#f04f4f22">🔑</div>
+          <div class="s-text"><div class="s-title">Show Secret Phrase</div><div class="s-sub">12-word recovery phrase</div></div>
+          <div class="s-right">›</div>
+        </div>
+        <div class="settings-row" onclick="showToast('Auto-lock: 5 minutes')">
+          <div class="s-icon" style="background:#9945ff22">⏱️</div>
+          <div class="s-text"><div class="s-title">Auto-Lock Timer</div><div class="s-sub">5 minutes</div></div>
+          <div class="s-right">›</div>
+        </div>
+      </div>
+    </div>
+    <div class="settings-section">
+      <div class="settings-label">About</div>
+      <div class="settings-group">
+        <div class="settings-row" onclick="showToast('LarpWallet v2.0')">
+          <div class="s-icon" style="background:#ab9ff222">👻</div>
+          <div class="s-text"><div class="s-title">LarpWallet</div><div class="s-sub">Version 2.0.0</div></div>
+          <div class="s-right">›</div>
+        </div>
+        <div class="settings-row" onclick="doReset()">
+          <div class="s-icon" style="background:#f04f4f22">🗑️</div>
+          <div class="s-text"><div class="s-title" style="color:var(--red)">Reset All Balances</div><div class="s-sub">Clear all values</div></div>
+          <div class="s-right">›</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- RENAME PAGE -->
+<div class="page" id="page-rename">
+  <div class="inner-header">
+    <div class="back-btn" onclick="closePage('page-rename')">‹</div>
+    <div class="page-title">Rename Account</div>
+  </div>
+  <div style="padding:24px 20px">
+    <div style="font-size:14px;color:var(--text2);margin-bottom:10px">Account name</div>
+    <input id="rename-input" type="text" maxlength="24" placeholder="Account 1"
+      style="width:100%;padding:16px;background:var(--bg2);border:1.5px solid var(--border);border-radius:14px;color:#fff;font-size:18px;font-weight:600;outline:none;font-family:'Inter',sans-serif;"
+      onfocus="this.style.borderColor='var(--purple)'" onblur="this.style.borderColor='var(--border)'"/>
+    <button onclick="saveRename()"
+      style="width:100%;padding:17px;background:var(--purple);border:none;border-radius:14px;color:#fff;font-size:17px;font-weight:700;cursor:pointer;font-family:'Inter',sans-serif;margin-top:16px;">
+      Save
+    </button>
+  </div>
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <button class="nav-item active" id="nav-home" onclick="switchTab('home')">
+    <svg viewBox="0 0 24 24"><path d="M3 9.5L12 3l9 6.5V20a1 1 0 01-1 1H4a1 1 0 01-1-1V9.5z"/></svg>
+    <span class="nav-label">Home</span>
+  </button>
+  <button class="nav-item" id="nav-collectibles" onclick="switchTab('collectibles')">
+    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+    <span class="nav-label">Collectibles</span>
+  </button>
+  <button class="nav-item" id="nav-activity" onclick="switchTab('activity')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3" stroke="var(--bg2)" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+    <span class="nav-label">Activity</span>
+  </button>
+  <button class="nav-item" id="nav-explore" onclick="switchTab('explore')">
+    <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m14.5 9.5-5 2-2 5 5-2 2-5z" fill="var(--bg2)"/></svg>
+    <span class="nav-label">Explore</span>
+  </button>
+  <button class="nav-item" id="nav-settings" onclick="switchTab('settings')">
+    <svg viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+    <span class="nav-label">Settings</span>
+  </button>
+</div>
+
+</div><!-- end .app -->
+
+<!-- EDIT SHEET -->
+<div class="sheet-overlay" id="sheet-overlay" onclick="closeSheet()"></div>
+<div class="edit-sheet" id="edit-sheet">
+  <div class="sheet-handle"></div>
+  <div style="font-size:11px;font-weight:600;color:var(--text3);letter-spacing:1px;text-transform:uppercase;margin-bottom:16px">Edit Balance</div>
+  <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+    <div id="sheet-logo" style="flex-shrink:0"></div>
+    <div><div id="sheet-name" style="font-size:20px;font-weight:700;color:#fff"></div><div id="sheet-price" style="font-size:13px;color:var(--text2);margin-top:3px"></div></div>
+  </div>
+  <div class="quick-row" id="quick-row"></div>
+  <div class="input-row">
+    <span class="inp-prefix">$</span>
+    <input class="bal-input" type="number" id="bal-input" inputmode="decimal" placeholder="0.00" step="0.01"/>
+  </div>
+  <div class="tok-equiv" id="tok-equiv"></div>
+  <button class="update-btn" onclick="saveBalance()">Update Balance</button>
+</div>
+
+<!-- ACCOUNT MODAL -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeAcctModal()"></div>
+<div class="account-modal" id="account-modal">
+  <div class="modal-title">My Wallets</div>
+  <div id="account-list"></div>
+  <button class="add-acct-btn" onclick="addAccount()">＋ Add / Connect Wallet</button>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
 
 <script>
-  const tokens = [
-    { id:'btc',  name:'Bitcoin',   sym:'BTC',  icon:'₿', bg:'#f7931a22', col:'#f7931a', price:67420,  change:+2.34  },
-    { id:'eth',  name:'Ethereum',  sym:'ETH',  icon:'Ξ', bg:'#627eea22', col:'#627eea', price:3510,   change:-1.12  },
-    { id:'sol',  name:'Solana',    sym:'SOL',  icon:'◎', bg:'#9945ff22', col:'#9945ff', price:178.5,  change:+5.67  },
-    { id:'bnb',  name:'BNB',       sym:'BNB',  icon:'B', bg:'#f3ba2f22', col:'#f3ba2f', price:608,    change:+0.88  },
-    { id:'usdc', name:'USD Coin',  sym:'USDC', icon:'$', bg:'#2775ca22', col:'#2775ca', price:1.000,  change:+0.01  },
-    { id:'xrp',  name:'XRP',       sym:'XRP',  icon:'✕', bg:'#0ecdd622', col:'#0ecdd6', price:0.5812, change:+3.21  },
-    { id:'ada',  name:'Cardano',   sym:'ADA',  icon:'₳', bg:'#0033ad22', col:'#4dabf7', price:0.4421, change:-0.55  },
-    { id:'doge', name:'Dogecoin',  sym:'DOGE', icon:'Ð', bg:'#c2a63322', col:'#c2a633', price:0.1632, change:+8.44  },
+// DATA
+const TOKENS = [
+  {id:'sol', name:'Solana',   sym:'SOL',  logo:'◎', bg:'#9945ff22', col:'#9945ff', price:178.50, change:+5.67},
+  {id:'eth', name:'Ethereum', sym:'ETH',  logo:'Ξ', bg:'#627eea22', col:'#627eea', price:3510,   change:-1.12},
+  {id:'btc', name:'Bitcoin',  sym:'BTC',  logo:'₿', bg:'#f7931a22', col:'#f7931a', price:67420,  change:+2.34},
+  {id:'bnb', name:'BNB',      sym:'BNB',  logo:'B', bg:'#f3ba2f22', col:'#f3ba2f', price:608,    change:+0.88},
+  {id:'usdc',name:'USD Coin', sym:'USDC', logo:'$', bg:'#2775ca22', col:'#2775ca', price:1.00,   change:+0.01, chain:'SOL'},
+  {id:'xrp', name:'XRP',      sym:'XRP',  logo:'✕', bg:'#0ecdd622', col:'#0ecdd6', price:0.5812, change:+3.21},
+  {id:'doge',name:'Dogecoin', sym:'DOGE', logo:'Ð', bg:'#c2a63322', col:'#c2a633', price:0.1632, change:+8.44},
+  {id:'pol', name:'Polygon',  sym:'POL',  logo:'⬡', bg:'#8247e522', col:'#8247e5', price:0.7120, change:-2.33},
+];
+const NFTS=[
+  {name:'Degen Ape #4201',coll:'Degen Ape Academy',e:'🦍'},
+  {name:'Mad Lad #7734',coll:'Mad Lads',e:'😤'},
+  {name:'Tensorian #112',coll:'Tensorians',e:'🔷'},
+  {name:'Okay Bear #554',coll:'Okay Bears',e:'🐻'},
+  {name:'SMB #2891',coll:'Solana Monkey Biz',e:'🐒'},
+  {name:'y00t #3322',coll:'y00ts',e:'🐐'},
+];
+
+// STATE with localStorage persistence
+function load(){try{return JSON.parse(localStorage.getItem('larpwallet_v3')||'{}')}catch(e){return{}}}
+function save(){localStorage.setItem('larpwallet_v3',JSON.stringify(S))}
+
+let S = load();
+if(!S.bals){S.bals={};TOKENS.forEach(t=>S.bals[t.id]=0)}
+TOKENS.forEach(t=>{if(S.bals[t.id]==null)S.bals[t.id]=0});
+if(!S.accounts)S.accounts=[{id:1,name:'Account 1',color:'#ab9ff2'}];
+if(S.activeAccount==null)S.activeAccount=1;
+if(!S.settings)S.settings={notifications:false,biometrics:true,testnet:false};
+
+let selTok=null, toastTmr=null;
+
+// FORMAT
+function usd(n){
+  if(n===0)return'$0.00';
+  if(n>=1e9)return'$'+(n/1e9).toFixed(3)+'B';
+  if(n>=1e6)return'$'+(n/1e6).toFixed(3)+'M';
+  if(n>=1000)return'$'+n.toLocaleString('en',{minimumFractionDigits:2,maximumFractionDigits:2});
+  return'$'+n.toFixed(2);
+}
+function tok(v,p){
+  if(v===0)return'0';
+  const a=v/p;
+  if(a>=1e6)return a.toLocaleString('en',{maximumFractionDigits:0});
+  if(a>=1000)return a.toLocaleString('en',{maximumFractionDigits:2});
+  if(a>=1)return a.toFixed(4);
+  return a.toFixed(6);
+}
+function total(){return TOKENS.reduce((s,t)=>s+S.bals[t.id],0)}
+
+// RENDER HOME
+function renderHome(){
+  const tot=total();
+  document.getElementById('total-bal').textContent=usd(tot);
+  const chg=tot*0.0312;
+  document.getElementById('chg-abs').textContent=(tot===0?'+$0.00':'+'+usd(chg));
+  document.getElementById('chg-pct').textContent=(tot===0?'+0.00%':'+3.12%');
+
+  document.getElementById('token-list').innerHTML=TOKENS.map(t=>{
+    const b=S.bals[t.id];
+    const sign=t.change>=0?'+':'';
+    const cls=t.change>=0?'pos':'neg';
+    const chain=t.chain?`<div class="chain-badge" style="background:${t.bg};color:${t.col};font-size:7px">${t.chain[0]}</div>`:'';
+    return`<div class="token-item" onclick="openEdit('${t.id}')">
+      <div class="tok-logo" style="background:${t.bg};color:${t.col}">${t.logo}${chain}</div>
+      <div class="tok-info"><div class="tok-name">${t.name}</div><div class="tok-sub">${tok(b,t.price)} ${t.sym}</div></div>
+      <div class="tok-right"><div class="tok-val">${usd(b)}</div><div class="tok-chg ${cls}">${sign}${usd(b*Math.abs(t.change/100))}</div></div>
+    </div>`;
+  }).join('');
+}
+
+// RENDER ACTIVITY
+function renderActivity(){
+  const acts=[
+    {icon:'⬆️',bg:'#3de38722',title:'Sent SOL',sub:'To 0x3c9...f2a1',amt:'-0.5 SOL',cls:'neg',date:'Today, 2:14 PM'},
+    {icon:'⬇️',bg:'#ab9ff222',title:'Received USDC',sub:'From 0x8b2...e7f4',amt:'+250 USDC',cls:'pos',date:'Today, 11:30 AM'},
+    {icon:'⇄',bg:'#627eea22',title:'Swapped ETH → SOL',sub:'Via Jupiter',amt:'+1.2 SOL',cls:'pos',date:'Yesterday'},
+    {icon:'🛒',bg:'#f7931a22',title:'Bought BTC',sub:'Via Coinbase',amt:'+0.001 BTC',cls:'pos',date:'Dec 12'},
+    {icon:'⬆️',bg:'#f04f4f22',title:'Sent DOGE',sub:'To 0x1a4...c9e2',amt:'-1000 DOGE',cls:'neg',date:'Dec 11'},
+    {icon:'⬇️',bg:'#0ecdd622',title:'Received XRP',sub:'From 0x5f1...a8b3',amt:'+500 XRP',cls:'pos',date:'Dec 10'},
   ];
+  document.getElementById('activity-list').innerHTML=acts.map(a=>`
+    <div class="activity-item" onclick="showToast('Transaction details')">
+      <div class="act-icon" style="background:${a.bg}">${a.icon}</div>
+      <div class="act-info"><div class="act-title">${a.title}</div><div class="act-sub">${a.sub}</div></div>
+      <div class="act-right"><div class="act-amount ${a.cls}">${a.amt}</div><div class="act-date">${a.date}</div></div>
+    </div>`).join('');
+}
 
-  const bals = {};
-  tokens.forEach(t => bals[t.id] = 0);
+// RENDER NFTS
+function renderNFTs(){
+  document.getElementById('nft-grid').innerHTML=NFTS.map(n=>`
+    <div class="nft-card" onclick="showToast('${n.name}')">
+      <div class="nft-img">${n.e}</div>
+      <div class="nft-info"><div class="nft-name">${n.name}</div><div class="nft-coll">${n.coll}</div></div>
+    </div>`).join('');
+}
 
-  let selectedId = null;
-  let toastTimer = null;
+// ACCOUNTS
+function renderAccounts(){
+  const a=S.accounts.find(x=>x.id===S.activeAccount)||S.accounts[0];
+  const init=a.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  document.getElementById('main-avatar').textContent=init;
+  document.getElementById('main-avatar').style.background=`linear-gradient(135deg,${a.color},${a.color}99)`;
+  document.getElementById('main-acct-name').textContent=a.name;
+  document.getElementById('s-avatar').textContent=init;
+  document.getElementById('s-name').textContent=a.name;
+  document.getElementById('s-acct-sub').textContent=a.name;
 
-  function fmtUSD(n) {
-    if (n === 0) return '$0.00';
-    if (n >= 1e9) return '$' + (n/1e9).toFixed(3) + 'B';
-    if (n >= 1e6) return '$' + (n/1e6).toFixed(3) + 'M';
-    if (n >= 1000) return '$' + n.toLocaleString('en', {minimumFractionDigits:2, maximumFractionDigits:2});
-    return '$' + n.toFixed(2);
-  }
+  document.getElementById('account-list').innerHTML=S.accounts.map(ac=>{
+    const i=ac.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+    const active=ac.id===S.activeAccount;
+    return`<div class="acct-row" onclick="switchAcct(${ac.id})">
+      <div class="acct-av" style="background:linear-gradient(135deg,${ac.color},${ac.color}99)">${i}</div>
+      <div class="acct-info"><div class="acct-name">${ac.name}</div><div class="acct-addr" style="font-size:12px;color:var(--text2);margin-top:2px">0x7f4a...a3d9</div></div>
+      <div style="font-size:14px;font-weight:600;color:#fff">${usd(total())}</div>
+      ${active?'<div style="color:var(--purple);font-size:18px;margin-left:4px">✓</div>':''}
+    </div>`;
+  }).join('');
+}
 
-  function fmtToken(usd, price) {
-    if (usd === 0) return '0';
-    const amt = usd / price;
-    if (amt >= 1e6) return amt.toLocaleString('en', {maximumFractionDigits:0});
-    if (amt >= 1000) return amt.toLocaleString('en', {maximumFractionDigits:2});
-    if (amt >= 1) return amt.toFixed(4);
-    return amt.toFixed(6);
-  }
+function openAcctModal(){renderAccounts();document.getElementById('modal-overlay').classList.add('open');document.getElementById('account-modal').classList.add('open')}
+function closeAcctModal(){document.getElementById('modal-overlay').classList.remove('open');document.getElementById('account-modal').classList.remove('open')}
+function switchAcct(id){S.activeAccount=id;save();renderAccounts();closeAcctModal();showToast('Account switched')}
+function addAccount(){
+  const colors=['#ab9ff2','#14f195','#f7931a','#ef4444','#0ecdd6','#627eea'];
+  const n=S.accounts.length+1;
+  S.accounts.push({id:n,name:'Account '+n,color:colors[n%colors.length]});
+  S.activeAccount=n;save();renderAccounts();closeAcctModal();showToast('Account '+n+' created');
+}
 
-  function totalUSD() { return tokens.reduce((s,t) => s + bals[t.id], 0); }
+// EDIT SHEET
+function openEdit(id){
+  selTok=id;
+  const t=TOKENS.find(x=>x.id===id);
+  document.getElementById('sheet-logo').innerHTML=`<div style="width:48px;height:48px;border-radius:50%;background:${t.bg};color:${t.col};display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:700">${t.logo}</div>`;
+  document.getElementById('sheet-name').textContent=t.name+' ('+t.sym+')';
+  document.getElementById('sheet-price').textContent='Price: '+usd(t.price)+' / '+t.sym;
+  const vals=[1000,10000,100000,1000000,1000000000];
+  const lbls=['$1K','$10K','$100K','$1M','$1B'];
+  document.getElementById('quick-row').innerHTML=lbls.map((l,i)=>`<button class="q-btn" onclick="setQ(${vals[i]})">${l}</button>`).join('');
+  const cur=S.bals[id];
+  document.getElementById('bal-input').value=cur>0?cur.toFixed(2):'';
+  updEquiv(cur,t);
+  document.getElementById('sheet-overlay').classList.add('open');
+  document.getElementById('edit-sheet').classList.add('open');
+  setTimeout(()=>document.getElementById('bal-input').focus(),400);
+}
+function setQ(v){document.getElementById('bal-input').value=v.toFixed(2);updEquiv(v,TOKENS.find(x=>x.id===selTok))}
+function updEquiv(v,t){
+  if(!t)t=TOKENS.find(x=>x.id===selTok);
+  document.getElementById('tok-equiv').textContent=v>0?'≈ '+tok(v,t.price)+' '+t.sym:'';
+}
+document.getElementById('bal-input').addEventListener('input',function(){updEquiv(parseFloat(this.value)||0,null)});
+document.getElementById('bal-input').addEventListener('keydown',e=>{if(e.key==='Enter')saveBalance();if(e.key==='Escape')closeSheet()});
+function saveBalance(){
+  if(!selTok)return;
+  S.bals[selTok]=parseFloat(document.getElementById('bal-input').value)||0;
+  save();closeSheet();renderHome();showToast('Balance updated!');
+}
+function closeSheet(){
+  document.getElementById('sheet-overlay').classList.remove('open');
+  document.getElementById('edit-sheet').classList.remove('open');
+  selTok=null;
+}
 
-  function updateTotal() {
-    const tot = totalUSD();
-    document.getElementById('total-balance').textContent = fmtUSD(tot);
-    if (tot === 0) {
-      document.getElementById('total-change').textContent = 'Tap a token below to set your balance';
-      document.getElementById('total-change').style.color = '#555577';
-    } else {
-      const chg = tot * 0.0312;
-      document.getElementById('total-change').textContent = '+' + fmtUSD(chg) + ' (+3.12%) today';
-      document.getElementById('total-change').style.color = '#22c55e';
-    }
-    drawChart(tot);
-    document.getElementById('empty-hint').style.display = tot === 0 ? 'block' : 'none';
-  }
+// SETTINGS
+function toggleSetting(k){
+  S.settings[k]=!S.settings[k];save();
+  document.getElementById('tog-'+k).classList.toggle('on',S.settings[k]);
+  showToast(k.charAt(0).toUpperCase()+k.slice(1)+': '+(S.settings[k]?'On':'Off'));
+}
+function goRename(){
+  document.getElementById('rename-input').value=S.accounts.find(a=>a.id===S.activeAccount)?.name||'Account 1';
+  openPage('page-rename');
+}
+function saveRename(){
+  const v=document.getElementById('rename-input').value.trim()||'Account 1';
+  const a=S.accounts.find(x=>x.id===S.activeAccount);
+  if(a)a.name=v;save();renderAccounts();closePage('page-rename');showToast('Account renamed!');
+}
+function doReset(){
+  if(confirm('Reset all balances to $0.00?')){TOKENS.forEach(t=>S.bals[t.id]=0);save();renderHome();showToast('Balances reset')}
+}
 
-  function drawChart(total) {
-    const pts = [0.70,0.74,0.71,0.79,0.76,0.83,0.80,0.87,0.84,0.91,0.88,0.94,0.91,0.97,0.94,1.0];
-    const W=390, H=56, pad=3;
-    const vals = pts.map(p => p * Math.max(total, 1));
-    const mn = Math.min(...vals), mx = Math.max(...vals);
-    const rng = mx - mn || 1;
-    const coords = pts.map((p,i) => {
-      const x = (i/(pts.length-1))*(W-pad*2)+pad;
-      const y = H-pad-((vals[i]-mn)/rng)*(H-pad*2-6)+3;
-      return [x.toFixed(1), y.toFixed(1)];
-    });
-    const lineD = coords.map((c,i) => (i?'L':'M')+c[0]+' '+c[1]).join(' ');
-    const fillD = lineD + ` L${W-pad} ${H+2} L${pad} ${H+2} Z`;
-    document.getElementById('chart-line').setAttribute('d', lineD);
-    document.getElementById('chart-fill').setAttribute('d', fillD);
-  }
-
-  function renderList() {
-    const list = document.getElementById('token-list');
-    list.innerHTML = tokens.map(t => {
-      const bal = bals[t.id];
-      const sign = t.change >= 0 ? '+' : '';
-      const cls = t.change >= 0 ? 'pos' : 'neg';
-      const tokenStr = fmtToken(bal, t.price) + ' ' + t.sym;
-      const sel = selectedId === t.id ? 'selected' : '';
-      return `<div class="token-row ${sel}" onclick="selectToken('${t.id}')">
-        <div class="token-icon" style="background:${t.bg};color:${t.col}">${t.icon}</div>
-        <div class="token-info">
-          <div class="token-name">${t.name}</div>
-          <div class="token-sub">${tokenStr}</div>
-        </div>
-        <div class="token-right">
-          <div class="token-value">${fmtUSD(bal)}</div>
-          <div class="token-chg ${cls}">${sign}${t.change.toFixed(2)}%</div>
-        </div>
-      </div>`;
-    }).join('');
-  }
-
-  function selectToken(id) {
-    selectedId = id;
-    const t = tokens.find(x => x.id === id);
-    document.getElementById('edit-icon').textContent = t.icon;
-    document.getElementById('edit-icon').style.background = t.bg;
-    document.getElementById('edit-icon').style.color = t.col;
-    document.getElementById('edit-tok-name').textContent = t.name + ' (' + t.sym + ')';
-    document.getElementById('edit-tok-price').textContent = 'Price: ' + fmtUSD(t.price) + ' per ' + t.sym;
-
-    const quickVals = [1000, 10000, 100000, 1000000, 1000000000];
-    const quickLabels = ['$1K', '$10K', '$100K', '$1M', '$1B'];
-    document.getElementById('quick-amounts').innerHTML = quickLabels.map((q,i) =>
-      `<button class="quick-btn" onclick="setQuick(${quickVals[i]})">${q}</button>`
-    ).join('');
-
-    const cur = bals[id];
-    const inp = document.getElementById('amount-input');
-    inp.value = cur > 0 ? cur.toFixed(2) : '';
-    updateEquiv(cur, t);
-    renderList();
-
-    document.getElementById('overlay').classList.add('visible');
-    document.getElementById('edit-panel').classList.add('open');
-    setTimeout(() => inp.focus(), 400);
-  }
-
-  function updateEquiv(usdVal, t) {
-    const el = document.getElementById('token-equiv');
-    if (!t) t = tokens.find(x => x.id === selectedId);
-    if (!t || usdVal <= 0) { el.textContent = ''; return; }
-    el.textContent = '≈ ' + fmtToken(usdVal, t.price) + ' ' + t.sym;
-  }
-
-  document.getElementById('amount-input').addEventListener('input', function() {
-    const val = parseFloat(this.value) || 0;
-    updateEquiv(val, null);
+// NAV
+function switchTab(tab){
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('nav-'+tab).classList.add('active');
+  ['home','collectibles','activity','explore','settings'].forEach(p=>{
+    const el=document.getElementById('page-'+p);
+    el.classList.remove('active');
+    el.style.transform=p==='home'?'translateX(0)':'translateX(100%)';
   });
+  const el=document.getElementById('page-'+tab);
+  el.style.transform='translateX(0)';
+  el.classList.add('active');
+}
+function openPage(id){const el=document.getElementById(id);el.style.zIndex=30;el.style.transform='translateX(0)';el.classList.add('active')}
+function closePage(id){const el=document.getElementById(id);el.style.transform='translateX(100%)';setTimeout(()=>el.classList.remove('active'),320)}
 
-  function setQuick(val) {
-    document.getElementById('amount-input').value = val.toFixed(2);
-    const t = tokens.find(x => x.id === selectedId);
-    updateEquiv(val, t);
-  }
+// TOAST
+function showToast(msg){
+  const el=document.getElementById('toast');
+  el.textContent=msg;el.classList.add('show');
+  clearTimeout(toastTmr);
+  toastTmr=setTimeout(()=>el.classList.remove('show'),2200);
+}
 
-  function saveBalance() {
-    if (!selectedId) return;
-    const val = parseFloat(document.getElementById('amount-input').value) || 0;
-    bals[selectedId] = val;
-    closePanel();
-    renderList();
-    updateTotal();
-    toast('Balance updated!');
-  }
+// CLOCK
+function tick(){const n=new Date();const h=n.getHours()%12||12;document.getElementById('clock').textContent=h+':'+String(n.getMinutes()).padStart(2,'0')}
+tick();setInterval(tick,15000);
 
-  function closePanel() {
-    document.getElementById('overlay').classList.remove('visible');
-    document.getElementById('edit-panel').classList.remove('open');
-    selectedId = null;
-    renderList();
-  }
+// LOAD TOGGLES
+Object.entries(S.settings).forEach(([k,v])=>{const el=document.getElementById('tog-'+k);if(el)el.classList.toggle('on',v)});
 
-  document.getElementById('amount-input').addEventListener('keydown', e => {
-    if (e.key === 'Enter') saveBalance();
-    if (e.key === 'Escape') closePanel();
-  });
-
-  function toast(msg) {
-    const el = document.getElementById('toast-el');
-    el.textContent = msg;
-    el.classList.add('show');
-    clearTimeout(toastTimer);
-    toastTimer = setTimeout(() => el.classList.remove('show'), 2000);
-  }
-
-  // Live clock
-  function updateTime() {
-    const now = new Date();
-    const h = now.getHours() % 12 || 12;
-    const m = String(now.getMinutes()).padStart(2,'0');
-    document.getElementById('status-time').textContent = h + ':' + m;
-  }
-  updateTime();
-  setInterval(updateTime, 10000);
-
-  // Tabs (decorative)
-  document.querySelectorAll('.tab').forEach(tab => {
-    tab.addEventListener('click', () => {
-      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-      tab.classList.add('active');
-    });
-  });
-
-  renderList();
-  updateTotal();
+// INIT
+renderHome();renderActivity();renderNFTs();renderAccounts();
 </script>
 </body>
 </html>
